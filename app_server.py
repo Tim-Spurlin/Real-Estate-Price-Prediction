@@ -18,6 +18,25 @@ def metrics_endpoint():
     from flask import Response
     return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
+# Native Telemetry Stream for Internal Chart.js Dashboard
+import psutil
+import time
+start_time = time.time()
+total_predictions = 0
+total_lookups = 0
+
+@app.route('/api/stats')
+def stats():
+    process = psutil.Process()
+    return jsonify({
+        'uptime_seconds': int(time.time() - start_time),
+        'cpu_percent': process.cpu_percent(),
+        'memory_mb': round(process.memory_info().rss / (1024 * 1024), 2),
+        'total_predictions': total_predictions,
+        'total_lookups': total_lookups,
+        'daily_requests': getattr(app, '_daily_requests_proxy', 0)
+    })
+
 RENTCAST_API_KEY = os.environ.get('RENTCAST_API_KEY', '')
 
 # Model is lazy-loaded on first predict call
@@ -87,6 +106,8 @@ def predict():
 
 @app.route('/api/lookup', methods=['POST'])
 def lookup():
+    global total_lookups
+    total_lookups += 1
     import requests as req
     data = request.get_json()
     address = data.get('address', '')

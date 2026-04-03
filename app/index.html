@@ -93,21 +93,24 @@
     <section id="tab-analytics" class="tab-content">
       <header class="dashboard-header">
         <h1 class="glow-text">System Analytics & Telemetry</h1>
-        <p>Live Prometheus and Grafana dashboards tracking server health and API latency.</p>
+        <p>Live, fully autonomous performance dashboard tracking server health directly from the Python AI core.</p>
       </header>
 
-      <div class="glass-panel" style="padding: 40px; text-align: center;">
-        <h3 style="margin-bottom: 20px; color: var(--neon-cyan);">Prometheus Endpoint Active</h3>
-        <p style="color: var(--text-muted); margin-bottom: 25px;">
-          Your Render application is currently calculating metrics for CPU usage, request latency, and HTTP status codes automatically via the Python backend.
-        </p>
-        <div style="display: flex; gap: 20px; justify-content: center;">
-          <a href="/metrics" target="_blank" class="action-btn" style="text-decoration: none;">View RAW Prometheus Metrics</a>
-          <a id="grafanaLink" href="https://grafana.com/auth/sign-in" target="_blank" class="action-btn" style="text-decoration: none; background: linear-gradient(135deg, #f05a28, #ff8c00);">Open Grafana Dashboard</a>
+      <div class="glass-panel" style="padding: 30px; margin-bottom: 20px;">
+        <div style="display: flex; gap: 20px; flex-wrap: wrap; justify-content: space-between; text-align: center; margin-bottom: 20px;">
+            <div class="card-stat"><span class="stat-val" id="stat-cpu">0%</span><span class="stat-label">CPU Load</span></div>
+            <div class="card-stat"><span class="stat-val" id="stat-mem">0 MB</span><span class="stat-label">Memory</span></div>
+            <div class="card-stat"><span class="stat-val" id="stat-req">0</span><span class="stat-label">Total API Calls</span></div>
+            <div class="card-stat"><span class="stat-val" id="stat-uptime">0s</span><span class="stat-label">Uptime</span></div>
+        </div>
+        <div style="height: 300px; width: 100%;">
+            <canvas id="telemetryChart"></canvas>
         </div>
       </div>
     </section>
   </main>
+  
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
   <script src="script.js"></script>
 </body>

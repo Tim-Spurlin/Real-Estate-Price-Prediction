@@ -167,4 +167,57 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initial render of saved
     renderSaved();
+
+    // ====== Native Telemetry Chart.js Initialization ======
+    const ctx = document.getElementById('telemetryChart').getContext('2d');
+    const telemetryChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [
+                { label: 'CPU Usage (%)', borderColor: '#00e5ff', backgroundColor: 'rgba(0, 229, 255, 0.1)', data: [], fill: true, tension: 0.4 },
+                { label: 'Memory (MB)', borderColor: '#0b6bf2', backgroundColor: 'rgba(11, 107, 242, 0.05)', data: [], fill: true, yAxisID: 'y1', tension: 0.4 }
+            ]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: '#8b9bb4' } } },
+            scales: {
+                x: { ticks: { color: '#8b9bb4' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y: { min: 0, max: 100, ticks: { color: '#8b9bb4' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                y1: { position: 'right', ticks: { color: '#8b9bb4' }, grid: { drawOnChartArea: false } }
+            }
+        }
+    });
+
+    // Stream realtime metrics from the Python Server
+    setInterval(async () => {
+        try {
+            const res = await fetch('/api/stats');
+            const stats = await res.json();
+            
+            // Update Number Cards
+            document.getElementById('stat-cpu').innerText = stats.cpu_percent + '%';
+            document.getElementById('stat-mem').innerText = stats.memory_mb + ' MB';
+            document.getElementById('stat-req').innerText = stats.total_lookups;
+            
+            // Format uptime
+            const hrs = Math.floor(stats.uptime_seconds / 3600);
+            const mins = Math.floor((stats.uptime_seconds % 3600) / 60);
+            const secs = stats.uptime_seconds % 60;
+            document.getElementById('stat-uptime').innerText = 
+                (hrs > 0 ? hrs + 'h ' : '') + (mins > 0 ? mins + 'm ' : '') + secs + 's';
+
+            // Push to Chart
+            const timeLabel = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
+            if(telemetryChart.data.labels.length > 20) {
+                telemetryChart.data.labels.shift();
+                telemetryChart.data.datasets.forEach(d => d.data.shift());
+            }
+            telemetryChart.data.labels.push(timeLabel);
+            telemetryChart.data.datasets[0].data.push(stats.cpu_percent);
+            telemetryChart.data.datasets[1].data.push(stats.memory_mb);
+            telemetryChart.update();
+        } catch(e) { }
+    }, 2000);
 });
