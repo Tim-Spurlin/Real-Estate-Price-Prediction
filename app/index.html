@@ -8,69 +8,89 @@
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Outfit:wght@400;700&display=swap" rel="stylesheet">
 </head>
 <body>
-  
+
   <div class="bg-wrapper"></div>
-  
+
   <nav class="navbar glass-panel-nav">
     <div class="logo">AM<span class="highlight">I</span></div>
     <div class="nav-links">
-      <a href="#" class="active">Market Data</a>
-      <a href="#">Modeling</a>
-      <a href="#">Vector Space</a>
+      <a href="#" class="active" data-tab="search">🔍 Market Search</a>
+      <a href="#" data-tab="saved">📌 Saved Properties</a>
+      <a href="#" data-tab="about">🧠 About Model</a>
     </div>
   </nav>
 
   <main class="container">
-    <header class="dashboard-header">
-      <h1 class="glow-text">Predictive Real Estate Valuations</h1>
-      <p>Powered by advanced ML Stacking (XGBoost, LightGBM, CatBoost) running locally.</p>
-    </header>
 
-    <div class="controls">
-      <div class="stats-pill">
-        <span class="label">Total Properties Analyzed</span>
-        <span class="value">100</span>
-      </div>
-      <div class="stats-pill outline">
-        <span class="label">Model Confidence</span>
-        <span class="value" style="color: var(--neon-cyan);">High (Ensembled)</span>
-      </div>
-    </div>
+    <!-- ====== TAB: MARKET SEARCH ====== -->
+    <section id="tab-search" class="tab-content active">
+      <header class="dashboard-header">
+        <h1 class="glow-text">Market Intelligence Search</h1>
+        <p>Search any U.S. property address to instantly pull real market data, valuations, and comparables.</p>
+      </header>
 
-    <div class="property-grid" id="propertyGrid">
-      <div class="loader">Loading intelligence...</div>
-    </div>
+      <div class="search-bar glass-panel">
+        <div class="search-icon">🏠</div>
+        <input type="text" id="searchInput" placeholder="Enter address — e.g. 123 Main St, Ames, IA 50010" class="search-input">
+        <button id="searchBtn" class="action-btn">Search</button>
+      </div>
+
+      <div id="searchStatus" class="search-status"></div>
+      <div id="searchResults" class="results-grid"></div>
+    </section>
+
+    <!-- ====== TAB: SAVED PROPERTIES ====== -->
+    <section id="tab-saved" class="tab-content">
+      <header class="dashboard-header">
+        <h1 class="glow-text">Saved Properties</h1>
+        <p>Your bookmarked properties are stored locally and persist between sessions.</p>
+      </header>
+
+      <div id="savedList" class="results-grid">
+        <div class="empty-state glass-panel">
+          <div class="empty-icon">📌</div>
+          <h3>No Saved Properties Yet</h3>
+          <p>Search for properties and click "Save" to bookmark them here.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- ====== TAB: ABOUT ====== -->
+    <section id="tab-about" class="tab-content">
+      <header class="dashboard-header">
+        <h1 class="glow-text">Model Architecture</h1>
+        <p>Powered by a multi-pillar feature engineering pipeline and stacking ensemble.</p>
+      </header>
+
+      <div class="about-grid">
+        <div class="about-card glass-panel">
+          <h3>🧠 Stacking Regressor</h3>
+          <p>6 base models (Lasso, Ridge, XGBoost, LightGBM, CatBoost, GBR) fused with a Ridge meta-learner.</p>
+        </div>
+        <div class="about-card glass-panel">
+          <h3>📐 Feature Engineering</h3>
+          <p>5,000+ synthesized variables via DFS, polynomial interactions, geospatial vectorization, and macroeconomic signals.</p>
+        </div>
+        <div class="about-card glass-panel">
+          <h3>🎯 Boruta Selection</h3>
+          <p>Random Forest shadow testing strips noise, keeping only statistically dominant features.</p>
+        </div>
+        <div class="about-card glass-panel">
+          <h3>🌍 Geospatial Mapping</h3>
+          <p>Haversine distances to Iowa State University, KMeans neighborhood clustering.</p>
+        </div>
+        <div class="about-card glass-panel">
+          <h3>📈 Macroeconomic Data</h3>
+          <p>FRED mortgage rates, Iowa unemployment, and Ames HPI integrated with forward-fill to prevent lookahead bias.</p>
+        </div>
+        <div class="about-card glass-panel">
+          <h3>🔒 RMSLE Optimized</h3>
+          <p>Log-transformed target ensures equal penalization of errors across all price tiers.</p>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <!-- Interactive Modal -->
-  <div class="modal-overlay" id="modalOverlay">
-    <div class="modal-content glass-panel" id="modalContent">
-      <button class="close-btn" id="closeBtn">&times;</button>
-      <div class="modal-body">
-        <div class="modal-left">
-          <h2 id="modalTitle">Property Diagnostics</h2>
-          <div class="property-id" id="modalPropId">ID: ####</div>
-          <div class="stats-grid" id="modalStats">
-             <!-- Injected Stats -->
-          </div>
-        </div>
-        <div class="modal-right">
-          <div class="price-box glass-panel-dark">
-             <h3>Estimated Valuation</h3>
-             <div class="price glow-text" id="modalPrice">$0</div>
-             <div class="confidence-bar">
-                <div class="fill"></div>
-             </div>
-             <p class="confidence-text">Algorithmic Match: 98.4%</p>
-             <button class="action-btn" onclick="alert('Proceeding to detailed Vector analysis...')">View Deep Dive</button>
-          </div>
-        </div>
-      </div>
-    </div>
-  </div>
-
-  <!-- Loaded as JS variable to avoid CORS file:// issues -->
-  <script src="data.js"></script>
   <script src="script.js"></script>
 </body>
 </html>

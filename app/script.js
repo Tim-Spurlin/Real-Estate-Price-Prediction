@@ -1,135 +1,169 @@
-document.addEventListener('DOMContentLoaded', async () => {
-    const grid = document.getElementById('propertyGrid');
-    const modal = document.getElementById('modalOverlay');
-    const closeBtn = document.getElementById('closeBtn');
-    
-    // Format currency
+document.addEventListener('DOMContentLoaded', () => {
     const formatter = new Intl.NumberFormat('en-US', {
-        style: 'currency',
-        currency: 'USD',
-        maximumFractionDigits: 0
+        style: 'currency', currency: 'USD', maximumFractionDigits: 0
     });
 
-    try {
-        const data = propertyData; // Loaded from data.js
-        
-        // Navigation Interceptor
-        document.querySelectorAll('.nav-links a').forEach(a => {
-           a.addEventListener('click', e => {
-               e.preventDefault();
-               document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
-               e.target.classList.add('active');
-               if(e.target.innerText === 'Modeling') alert('Stacking Phase II Engaged: Displaying DFS and Poly features context.');
-               if(e.target.innerText === 'Vector Space') alert('Geospatial Coordinate Matrix active. K-Means clustering mapped successfully.');
-           });
+    // ====== Tab Navigation ======
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault();
+            document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+            link.classList.add('active');
+            const tab = link.dataset.tab;
+            document.querySelectorAll('.tab-content').forEach(s => s.classList.remove('active'));
+            document.getElementById(`tab-${tab}`).classList.add('active');
+            if (tab === 'saved') renderSaved();
         });
-        
-        grid.innerHTML = '';
-        
-        // Populate Grid
-        data.forEach((prop, index) => {
-            const delay = (index % 10) * 0.05;
-            const price = prop.SalePrice ? formatter.format(prop.SalePrice) : 'Unknown';
-            
-            const card = document.createElement('div');
-            card.className = 'prop-card glass-panel';
-            card.style.animationDelay = `${delay}s`;
-            
-            // Generate some card HTML based on test dataset features
-            // Common features: Neighborhood, YearBuilt, GrLivArea
-            card.innerHTML = `
-                <div class="prop-id">ID: ${prop.Id}</div>
-                <div class="prop-title">${prop.Neighborhood || 'Unknown Area'}</div>
-                <div class="prop-mini-stats">
-                    <span>🏠 ${prop.GrLivArea || 0} sqft</span>
-                    <span>🏗️ Built ${prop.YearBuilt || 'N/A'}</span>
-                </div>
-                <div class="prop-price">${price}</div>
-            `;
-            
-            card.addEventListener('click', () => openModal(prop));
-            grid.appendChild(card);
-        });
-        
-    } catch (e) {
-        grid.innerHTML = `<div style="color:red">Error loading data. Make sure data.json exists.</div>`;
-        console.error(e);
+    });
+
+    // ====== Local Storage for Saved Properties ======
+    function getSaved() {
+        try { return JSON.parse(localStorage.getItem('savedProperties') || '[]'); }
+        catch { return []; }
+    }
+    function saveProp(prop) {
+        const saved = getSaved();
+        if (saved.find(p => p.id === prop.id)) return false;
+        saved.push(prop);
+        localStorage.setItem('savedProperties', JSON.stringify(saved));
+        return true;
+    }
+    function removeProp(id) {
+        const saved = getSaved().filter(p => p.id !== id);
+        localStorage.setItem('savedProperties', JSON.stringify(saved));
+        renderSaved();
     }
 
-    function openModal(prop) {
-        document.getElementById('modalPropId').innerText = `ID: ${prop.Id}`;
-        
-        // Fill Stats Box (GrLivArea, YearBuilt, OverallQual, FullBath, GarageArea)
-        const statsHtml = `
-            <div class="stat-item">
-                <span class="label">Living Area</span>
-                <span class="val">${prop.GrLivArea || 0} sqft</span>
+    // ====== Render a Property Card ======
+    function createCard(prop, isSaved) {
+        const card = document.createElement('div');
+        card.className = 'property-card glass-panel';
+
+        const price = prop.price ? formatter.format(prop.price) :
+                      prop.lastSalePrice ? formatter.format(prop.lastSalePrice) : 'N/A';
+
+        card.innerHTML = `
+            <div class="card-header">
+                <div class="card-address">${prop.address || 'Unknown Address'}</div>
+                <div class="card-price glow-text">${price}</div>
             </div>
-            <div class="stat-item">
-                <span class="label">Year Built</span>
-                <span class="val">${prop.YearBuilt || 'N/A'}</span>
+            <div class="card-stats">
+                ${prop.bedrooms ? `<div class="card-stat"><span class="stat-val">${prop.bedrooms}</span><span class="stat-label">Beds</span></div>` : ''}
+                ${prop.bathrooms ? `<div class="card-stat"><span class="stat-val">${prop.bathrooms}</span><span class="stat-label">Baths</span></div>` : ''}
+                ${prop.squareFootage ? `<div class="card-stat"><span class="stat-val">${prop.squareFootage.toLocaleString()}</span><span class="stat-label">Sqft</span></div>` : ''}
+                ${prop.yearBuilt ? `<div class="card-stat"><span class="stat-val">${prop.yearBuilt}</span><span class="stat-label">Built</span></div>` : ''}
+                ${prop.lotSize ? `<div class="card-stat"><span class="stat-val">${prop.lotSize.toLocaleString()}</span><span class="stat-label">Lot Sqft</span></div>` : ''}
             </div>
-            <div class="stat-item">
-                <span class="label">Overall Quality</span>
-                <span class="val">${prop.OverallQual || 'N/A'} / 10</span>
-            </div>
-            <div class="stat-item">
-                <span class="label">Total Rooms</span>
-                <span class="val">${prop.TotRmsAbvGrd || 'N/A'}</span>
-            </div>
-            <div class="stat-item" style="color:var(--neon-cyan)">
-                <span class="label">Iowa State Univ.</span>
-                <span class="val">${prop.Distance_to_ISU ? prop.Distance_to_ISU.toFixed(2) + ' mi' : 'N/A'}</span>
-            </div>
-            <div class="stat-item" style="color:var(--neon-cyan)">
-                <span class="label">FRED Mortgage</span>
-                <span class="val">${prop.MORTGAGE30US ? prop.MORTGAGE30US.toFixed(2) + '%' : '12%'}</span>
-            </div>
-            <div class="stat-item">
-                <span class="label">True Usable Area</span>
-                <span class="val">${prop.TotalUsableAreaSF || 'N/A'} sqft</span>
-            </div>
-            <div class="stat-item">
-                <span class="label">Algorithmic Cluster</span>
-                <span class="val">Z-${prop.GeoCluster !== undefined ? prop.GeoCluster : 'X'}</span>
+            ${prop.propertyType ? `<div class="card-type">${prop.propertyType}</div>` : ''}
+            <div class="card-actions">
+                ${isSaved
+                    ? `<button class="card-btn remove-btn" data-id="${prop.id}">✕ Remove</button>`
+                    : `<button class="card-btn save-btn" data-id="${prop.id}">📌 Save Property</button>`
+                }
             </div>
         `;
-        document.getElementById('modalStats').innerHTML = statsHtml;
-        
-        // Animate counter for price
-        const targetPrice = prop.SalePrice || 0;
-        const priceEl = document.getElementById('modalPrice');
-        priceEl.innerText = '$0';
-        
-        modal.classList.add('active');
-        
-        // Counter animation
-        let startTimestamp = null;
-        const duration = 1000;
-        const step = (timestamp) => {
-            if (!startTimestamp) startTimestamp = timestamp;
-            const progress = Math.min((timestamp - startTimestamp) / duration, 1);
-            
-            // easeOutExpo
-            const easeProgress = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
-            const currentVal = targetPrice * easeProgress;
-            
-            priceEl.innerText = formatter.format(currentVal);
-            
-            if (progress < 1) {
-                window.requestAnimationFrame(step);
-            }
-        };
-        window.requestAnimationFrame(step);
+
+        if (isSaved) {
+            card.querySelector('.remove-btn').addEventListener('click', () => removeProp(prop.id));
+        } else {
+            card.querySelector('.save-btn').addEventListener('click', (e) => {
+                if (saveProp(prop)) {
+                    e.target.innerText = '✓ Saved!';
+                    e.target.disabled = true;
+                    e.target.classList.add('saved');
+                } else {
+                    e.target.innerText = 'Already Saved';
+                    e.target.disabled = true;
+                }
+            });
+        }
+        return card;
     }
 
-    closeBtn.addEventListener('click', () => {
-        modal.classList.remove('active');
-    });
-
-    modal.addEventListener('click', (e) => {
-        if (e.target === modal) {
-            modal.classList.remove('active');
+    // ====== Render Saved Tab ======
+    function renderSaved() {
+        const container = document.getElementById('savedList');
+        const saved = getSaved();
+        if (saved.length === 0) {
+            container.innerHTML = `
+                <div class="empty-state glass-panel">
+                    <div class="empty-icon">📌</div>
+                    <h3>No Saved Properties Yet</h3>
+                    <p>Search for properties and click "Save" to bookmark them here.</p>
+                </div>`;
+            return;
         }
-    });
+        container.innerHTML = '';
+        saved.forEach(prop => container.appendChild(createCard(prop, true)));
+    }
+
+    // ====== Market Search ======
+    const searchBtn = document.getElementById('searchBtn');
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
+    const searchStatus = document.getElementById('searchStatus');
+
+    async function doSearch() {
+        const query = searchInput.value.trim();
+        if (!query) { searchStatus.innerHTML = '<p class="status-warn">Please enter an address to search.</p>'; return; }
+
+        searchStatus.innerHTML = '<p class="status-loading">🔍 Searching RentCast API...</p>';
+        searchResults.innerHTML = '';
+
+        try {
+            const res = await fetch('/api/lookup', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ address: query })
+            });
+            const data = await res.json();
+
+            if (data.error) {
+                searchStatus.innerHTML = '';
+                searchResults.innerHTML = `
+                    <div class="glass-panel api-notice">
+                        <h3>⚠️ API Key Required</h3>
+                        <p>${data.error}</p>
+                        <a href="https://www.rentcast.io/api" target="_blank" class="api-link">Get your free RentCast API key →</a>
+                        <div class="api-help">
+                            <p>Once you have a key, set it as an environment variable:</p>
+                            <code>export RENTCAST_API_KEY=your_key_here</code>
+                        </div>
+                    </div>`;
+                return;
+            }
+
+            const items = Array.isArray(data) ? data : [data];
+            if (items.length === 0) {
+                searchStatus.innerHTML = '<p class="status-warn">No results found for that address.</p>';
+                return;
+            }
+
+            searchStatus.innerHTML = `<p class="status-success">Found ${items.length} result${items.length > 1 ? 's' : ''}</p>`;
+            items.forEach((item, i) => {
+                const prop = {
+                    id: `${query}-${i}-${Date.now()}`,
+                    address: item.formattedAddress || item.addressLine1 || query,
+                    price: item.price || item.estimatedValue || null,
+                    lastSalePrice: item.lastSalePrice || null,
+                    bedrooms: item.bedrooms || null,
+                    bathrooms: item.bathrooms || null,
+                    squareFootage: item.squareFootage || null,
+                    yearBuilt: item.yearBuilt || null,
+                    lotSize: item.lotSize || null,
+                    propertyType: item.propertyType || null
+                };
+                searchResults.appendChild(createCard(prop, false));
+            });
+        } catch (err) {
+            searchStatus.innerHTML = '<p class="status-error">Network error. Is app_server.py running?</p>';
+            console.error(err);
+        }
+    }
+
+    searchBtn.addEventListener('click', doSearch);
+    searchInput.addEventListener('keydown', e => { if (e.key === 'Enter') doSearch(); });
+
+    // Initial render of saved
+    renderSaved();
 });
