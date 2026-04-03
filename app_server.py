@@ -9,8 +9,14 @@ from prometheus_flask_exporter import PrometheusMetrics
 app = Flask(__name__, static_folder='app', static_url_path='')
 
 # Expose standard web traffic telemetry at /metrics
-metrics = PrometheusMetrics(app)
+metrics = PrometheusMetrics(app, path=None) # Disable default dynamic binding
 metrics.info('app_info', 'Ames Real Estate Intelligence API', version='1.0.0')
+
+@app.route('/metrics')
+def metrics_endpoint():
+    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
+    from flask import Response
+    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
 
 RENTCAST_API_KEY = os.environ.get('RENTCAST_API_KEY', '')
 
