@@ -4,19 +4,12 @@ import json
 import webbrowser
 import threading
 from flask import Flask, send_from_directory, request, jsonify
-from prometheus_flask_exporter import PrometheusMetrics
 
 app = Flask(__name__, static_folder='app', static_url_path='')
 
-# Expose standard web traffic telemetry at /metrics
-metrics = PrometheusMetrics(app, path=None) # Disable default dynamic binding
-metrics.info('app_info', 'Ames Real Estate Intelligence API', version='1.0.0')
-
 @app.route('/metrics')
 def metrics_endpoint():
-    from prometheus_client import generate_latest, CONTENT_TYPE_LATEST
-    from flask import Response
-    return Response(generate_latest(), mimetype=CONTENT_TYPE_LATEST)
+    return jsonify({"error": "Prometheus exporter disabled in favor of Native Telemetry Dashboard. Call /api/stats instead."}), 404
 
 # Native Telemetry Stream for Internal Chart.js Dashboard
 import psutil
