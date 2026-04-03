@@ -46,6 +46,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="card-header">
                 <div class="card-address">${prop.address || 'Unknown Address'}</div>
                 <div class="card-price glow-text">${price}</div>
+                <div style="font-size:10px; color:var(--neon-cyan); letter-spacing:1px; margin-top:5px; text-transform:uppercase;">⚡ AI Predicted Valuation</div>
             </div>
             <div class="card-stats">
                 ${prop.bedrooms ? `<div class="card-stat"><span class="stat-val">${prop.bedrooms}</span><span class="stat-label">Beds</span></div>` : ''}
@@ -144,7 +145,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const prop = {
                     id: `${query}-${i}-${Date.now()}`,
                     address: item.formattedAddress || item.addressLine1 || query,
-                    price: item.price || item.estimatedValue || null,
+                    price: item.ai_predicted_price || item.price || item.estimatedValue || null,
                     lastSalePrice: item.lastSalePrice || null,
                     bedrooms: item.bedrooms || null,
                     bathrooms: item.bathrooms || null,
