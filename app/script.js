@@ -168,6 +168,106 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initial render of saved
     renderSaved();
 
+    // ====== Portfolio BI Analytics Dashboard ======
+    let portfolioScatter, portfolioBar;
+
+    function renderPortfolioAnalytics() {
+        const saved = getSaved();
+        
+        // Filter values
+        const typeFilter = document.getElementById('filter-type').value;
+        const bedsFilter = document.getElementById('filter-beds').value;
+
+        // Apply logic
+        let data = saved.filter(p => {
+            if (typeFilter !== 'all' && p.propertyType !== typeFilter) return false;
+            if (bedsFilter !== 'all' && (p.bedrooms || 0) < parseInt(bedsFilter)) return false;
+            return true;
+        });
+
+        // Prepare Scatter: Price vs Sqft
+        const scatterData = data
+            .filter(p => p.price && p.squareFootage)
+            .map(p => ({ x: p.squareFootage, y: p.price, r: 6 }));
+
+        // Prepare Bar: Avg Price by Beds
+        const bedGroups = {};
+        data.forEach(p => {
+            if(!p.bedrooms || !p.price) return;
+            const b = p.bedrooms > 5 ? '5+ Beds' : p.bedrooms + ' Beds';
+            if(!bedGroups[b]) bedGroups[b] = { sum: 0, count: 0 };
+            bedGroups[b].sum += p.price;
+            bedGroups[b].count += 1;
+        });
+        const barLabels = Object.keys(bedGroups).sort();
+        const barData = barLabels.map(k => bedGroups[k].sum / bedGroups[k].count);
+
+        if (portfolioScatter) portfolioScatter.destroy();
+        const ctxS = document.getElementById('portfolioScatterChart').getContext('2d');
+        portfolioScatter = new Chart(ctxS, {
+            type: 'scatter',
+            data: {
+                datasets: [{
+                    label: 'Price vs. Sqft',
+                    data: scatterData,
+                    backgroundColor: '#00e5ff',
+                    borderColor: 'rgba(255,255,255,0.8)',
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: 'Valuation vs. Square Footage', color: '#fff' },
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { title: {display: true, text: 'Square Footage', color: '#8b9bb4'}, ticks: { color: '#8b9bb4' }, grid: { color: 'rgba(255,255,255,0.05)' } },
+                    y: { title: {display: true, text: 'Price (USD)', color: '#8b9bb4'}, ticks: { color: '#8b9bb4', callback: v => '$'+v.toLocaleString() }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                }
+            }
+        });
+
+        if (portfolioBar) portfolioBar.destroy();
+        const ctxB = document.getElementById('portfolioBarChart').getContext('2d');
+        portfolioBar = new Chart(ctxB, {
+            type: 'bar',
+            data: {
+                labels: barLabels,
+                datasets: [{
+                    label: 'Avg. Valuation',
+                    data: barData,
+                    backgroundColor: 'rgba(11, 107, 242, 0.6)',
+                    borderColor: '#0b6bf2',
+                    borderWidth: 1,
+                    borderRadius: 4
+                }]
+            },
+            options: {
+                responsive: true, maintainAspectRatio: false,
+                plugins: {
+                    title: { display: true, text: 'Average Valuation by Bedroom Count', color: '#fff' },
+                    legend: { display: false }
+                },
+                scales: {
+                    x: { ticks: { color: '#8b9bb4' }, grid: { display: false } },
+                    y: { ticks: { color: '#8b9bb4', callback: v => '$'+v.toLocaleString() }, grid: { color: 'rgba(255,255,255,0.05)' } }
+                }
+            }
+        });
+    }
+
+    document.getElementById('applyFiltersBtn')?.addEventListener('click', renderPortfolioAnalytics);
+
+    // Update charts strictly when clicking into the Analytics tab
+    document.querySelectorAll('.nav-links a').forEach(link => {
+        link.addEventListener('click', e => {
+            if(link.dataset.tab === 'analytics') {
+                setTimeout(renderPortfolioAnalytics, 100);
+            }
+        });
+    });
+
     // ====== Native Telemetry Chart.js Initialization ======
     const ctx = document.getElementById('telemetryChart').getContext('2d');
     const telemetryChart = new Chart(ctx, {
@@ -209,6 +309,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 (hrs > 0 ? hrs + 'h ' : '') + (mins > 0 ? mins + 'm ' : '') + secs + 's';
 
             // Push to Chart
+            if (!document.getElementById('tab-analytics').classList.contains('active')) return;
+
             const timeLabel = new Date().toLocaleTimeString([], {hour: '2-digit', minute:'2-digit', second:'2-digit'});
             if(telemetryChart.data.labels.length > 20) {
                 telemetryChart.data.labels.shift();
