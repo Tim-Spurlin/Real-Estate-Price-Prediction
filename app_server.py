@@ -7,7 +7,7 @@ from flask import Flask, send_from_directory, request, jsonify
 
 app = Flask(__name__, static_folder='app', static_url_path='')
 
-RENTCAST_API_KEY = os.environ.get('RENTCAST_API_KEY', '2e1b3dd1d84947b4b5faeee561a60e87')
+RENTCAST_API_KEY = os.environ.get('RENTCAST_API_KEY', '')
 
 # Model is lazy-loaded on first predict call
 _model = None
