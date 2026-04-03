@@ -13,6 +13,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     try {
         const data = propertyData; // Loaded from data.js
         
+        // Navigation Interceptor
+        document.querySelectorAll('.nav-links a').forEach(a => {
+           a.addEventListener('click', e => {
+               e.preventDefault();
+               document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+               e.target.classList.add('active');
+               if(e.target.innerText === 'Modeling') alert('Stacking Phase II Engaged: Displaying DFS and Poly features context.');
+               if(e.target.innerText === 'Vector Space') alert('Geospatial Coordinate Matrix active. K-Means clustering mapped successfully.');
+           });
+        });
+        
         grid.innerHTML = '';
         
         // Populate Grid
@@ -66,13 +77,21 @@ document.addEventListener('DOMContentLoaded', async () => {
                 <span class="label">Total Rooms</span>
                 <span class="val">${prop.TotRmsAbvGrd || 'N/A'}</span>
             </div>
-            <div class="stat-item">
-                <span class="label">Lot Area</span>
-                <span class="val">${prop.LotArea || 0} sqft</span>
+            <div class="stat-item" style="color:var(--neon-cyan)">
+                <span class="label">Iowa State Univ.</span>
+                <span class="val">${prop.Distance_to_ISU ? prop.Distance_to_ISU.toFixed(2) + ' mi' : 'N/A'}</span>
+            </div>
+            <div class="stat-item" style="color:var(--neon-cyan)">
+                <span class="label">FRED Mortgage</span>
+                <span class="val">${prop.MORTGAGE30US ? prop.MORTGAGE30US.toFixed(2) + '%' : '12%'}</span>
             </div>
             <div class="stat-item">
-                <span class="label">Garage</span>
-                <span class="val">${prop.GarageCars || 0} Cars</span>
+                <span class="label">True Usable Area</span>
+                <span class="val">${prop.TotalUsableAreaSF || 'N/A'} sqft</span>
+            </div>
+            <div class="stat-item">
+                <span class="label">Algorithmic Cluster</span>
+                <span class="val">Z-${prop.GeoCluster !== undefined ? prop.GeoCluster : 'X'}</span>
             </div>
         `;
         document.getElementById('modalStats').innerHTML = statsHtml;

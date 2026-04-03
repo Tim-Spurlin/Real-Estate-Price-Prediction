@@ -1,6 +1,5 @@
 import pandas as pd
 import datetime
-import pandas_datareader.data as web
 
 def generate_macro_features(df):
     """Pillar IV: Extrinsic Macroeconomic Time-Series Integration"""
