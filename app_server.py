@@ -4,8 +4,13 @@ import json
 import webbrowser
 import threading
 from flask import Flask, send_from_directory, request, jsonify
+from prometheus_flask_exporter import PrometheusMetrics
 
 app = Flask(__name__, static_folder='app', static_url_path='')
+
+# Expose standard web traffic telemetry at /metrics
+metrics = PrometheusMetrics(app)
+metrics.info('app_info', 'Ames Real Estate Intelligence API', version='1.0.0')
 
 RENTCAST_API_KEY = os.environ.get('RENTCAST_API_KEY', '')
 

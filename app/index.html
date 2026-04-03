@@ -14,9 +14,10 @@
   <nav class="navbar glass-panel-nav">
     <div class="logo">AM<span class="highlight">I</span></div>
     <div class="nav-links">
-      <a href="#" class="active" data-tab="search">🔍 Market Search</a>
+      <a href="#" data-tab="search" class="active">🔍 Market Search</a>
       <a href="#" data-tab="saved">📌 Saved Properties</a>
       <a href="#" data-tab="about">🧠 About Model</a>
+      <a href="#" data-tab="analytics">📊 Server Analytics</a>
     </div>
   </nav>
 
@@ -86,6 +87,23 @@
         <div class="about-card glass-panel">
           <h3>🔒 RMSLE Optimized</h3>
           <p>Log-transformed target ensures equal penalization of errors across all price tiers.</p>
+        </div>
+      </div>
+    <!-- ====== TAB: ANALYTICS ====== -->
+    <section id="tab-analytics" class="tab-content">
+      <header class="dashboard-header">
+        <h1 class="glow-text">System Analytics & Telemetry</h1>
+        <p>Live Prometheus and Grafana dashboards tracking server health and API latency.</p>
+      </header>
+
+      <div class="glass-panel" style="padding: 40px; text-align: center;">
+        <h3 style="margin-bottom: 20px; color: var(--neon-cyan);">Prometheus Endpoint Active</h3>
+        <p style="color: var(--text-muted); margin-bottom: 25px;">
+          Your Render application is currently calculating metrics for CPU usage, request latency, and HTTP status codes automatically via the Python backend.
+        </p>
+        <div style="display: flex; gap: 20px; justify-content: center;">
+          <a href="/metrics" target="_blank" class="action-btn" style="text-decoration: none;">View RAW Prometheus Metrics</a>
+          <a id="grafanaLink" href="https://grafana.com/auth/sign-in" target="_blank" class="action-btn" style="text-decoration: none; background: linear-gradient(135deg, #f05a28, #ff8c00);">Open Grafana Dashboard</a>
         </div>
       </div>
     </section>
